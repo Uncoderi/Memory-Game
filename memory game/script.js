@@ -17,74 +17,53 @@ function unical(arr, n) {
 
 function fadeText(cards) {
     let cardInner, cardInnerBack, cardBackText;
-    for (let i of cards) {
-        i.classList.remove("anim");
-        cardInner = i.childNodes[0];
+
+    cards.forEach((el) => {
+        el.classList.remove("anim");
+        cardInner = el.childNodes[0];
         cardInnerBack = cardInner.childNodes[1]
         cardBackText = cardInnerBack.childNodes[0];
         cardBackText.innerHTML = "";
-    }
-    cards.forEach((el) => {
         el.addEventListener("click", clickEvent);
         el.style.cursor = "pointer"
     });
 }
 
-function clearCards() {
-    const cards = document.querySelectorAll(".game-card");
-
+function clearCards(cards) {
     cards.forEach((el) => {
         el.remove();
     });
 }
 
-const cardsParentTwo = document.querySelector(".game-playground");
+function generateCardsContent(cards, uniqCardIndexes, uniq, numIndex) {
+    cardIndexFirst = random(0, cards.length);
+    cardIndexSecond = random(0, cards.length);
 
-function restart(cardN, wins, score, rows, func) {
-    cardN = 4;
-    cardsParentTwo.style.gridTemplateColumns = `repeat(${cardN / 2}, 100px)`
-    wins = 0;
-    score = 0;
-    rows = 2;
-
-    clearCards();
-
-    func(cardN);
-}
-
-function generateCardsContent(cards, uniqIndexes, uniq, indexFirst, test) {
-    for (let j = 1; j < 2; j++) {
-        indexSecond = random(0, cards.length);
-        indexThird = random(0, cards.length);
-
-        for (let i = 0; i < 10000; i++) {
-            if (indexSecond === indexThird) {
-                indexSecond = random(0, cards.length);
-                indexThird = random(0, cards.length);
-            } else {
-                break;
-            }
-
+    for (let i = 0; i < 10000; i++) {
+        if (cardIndexFirst === cardIndexSecond) {
+            cardIndexFirst = random(0, cards.length);
+            cardIndexSecond = random(0, cards.length);
+        } else {
+            break;
         }
 
-        let textSecond = cards[indexSecond].querySelector(".game-card-text")
-        let textThird = cards[indexThird].querySelector(".game-card-text")
+    }
+
+    let cardTextFirst = cards[cardIndexFirst].querySelector(".game-card-text")
+    let cardTextSecond = cards[cardIndexSecond].querySelector(".game-card-text")
 
 
-        if (indexSecond !== indexThird) {
-            if (unical(uniqIndexes, indexSecond) && unical(uniqIndexes, indexThird)) {
-                textSecond.innerHTML = uniq[indexFirst][test];
-                textThird.innerHTML = uniq[indexFirst][test];
+    if (cardIndexFirst !== cardIndexSecond) {
+        if (unical(uniqCardIndexes, cardIndexFirst) && unical(uniqCardIndexes, cardIndexSecond)) {
+            cardTextFirst.innerHTML = uniq[numIndex][0];
+            cardTextSecond.innerHTML = uniq[numIndex][0];
 
-                uniqIndexes.push(indexSecond);
-                uniqIndexes.push(indexThird);
+            uniqCardIndexes.push(cardIndexFirst);
+            uniqCardIndexes.push(cardIndexSecond);
 
-            } else {
-                generateCardsContent(cards, uniqIndexes, uniq, indexFirst, test)
-            }
+        } else {
+            generateCardsContent(cards, uniqCardIndexes, uniq, numIndex)
         }
-
-        test++
     }
 }
 
@@ -92,18 +71,17 @@ let cardDict = new Map();
 
 function renderCards(n) {
     let uniq = [];
-    let uniqIndexes = [];
-    let uniqIndexesSecond = [];
+    let uniqCardIndexes = [];
+    let uniqNumIndexes = [];
 
     let cardInner, cardInnerBack, cardBackText;
 
 
-    let test = 0;
-    let indexFirst, indexSecond, indexThird;
+    let numIndex;
     let next = true;
 
     for (let i = 1; i <= n / 2; i++) {
-        uniq.push([i, i]);
+        uniq.push([i]);
     }
 
     for (let i = 1; i <= n; i++) {
@@ -139,14 +117,12 @@ function renderCards(n) {
 
 
     for (let i = 0; i < cards.length / 2; i++) {
-        if (test >= uniq.length) {
-            test = 0;
-        }
+        
 
-        indexFirst = i % 2 === 0 ? random(0, uniq.length) : indexFirst;
+        numIndex = i % 2 === 0 ? random(0, uniq.length) : numIndex;
         for (let i = 0; i < 10000; i++) {
-            if (uniqIndexesSecond.includes(indexFirst)) {
-                indexFirst = next ? random(0, uniq.length) : indexFirst;
+            if (uniqNumIndexes.includes(numIndex)) {
+                numIndex = next ? random(0, uniq.length) : numIndex;
             } else {
                 break;
             }
@@ -155,7 +131,7 @@ function renderCards(n) {
 
         next = false;
 
-        generateCardsContent(cards, uniqIndexes, uniq, indexFirst, test);
+        generateCardsContent(cards, uniqCardIndexes, uniq, numIndex);
         setTimeout(fadeText, 2000, cards);
 
         for (let i of cards) {
@@ -167,7 +143,7 @@ function renderCards(n) {
         }
 
 
-        uniqIndexesSecond.push(indexFirst);
+        uniqNumIndexes.push(numIndex);
         next = true
     }
 
@@ -183,11 +159,12 @@ let score = 0;
 let wins = 0;
 let rows = 2;
 const cardsParent = document.querySelector(".game-playground");
-const cards = document.querySelectorAll(".game-card");
 
 const gameText = document.querySelector(".game-text");
 
 function clickEvent() {
+    const cards = document.querySelectorAll(".game-card");
+
 
     let cardText = this.querySelector(".game-card-text");
 
@@ -223,7 +200,7 @@ function clickEvent() {
 
                     if (cardN / score === 2) {
                         wins++;
-                        clearCards();
+                        clearCards(cards);
 
                         if (wins % 3 === 0) {
                             cardN += 2;
@@ -245,7 +222,7 @@ function clickEvent() {
             } else {
                 if (firstEl.dataset.busy === "false" && secondEl.dataset.busy === "false") {
 
-                    clearCards()
+                    clearCards(cards)
                     gameText.innerHTML = "You lose(";
                 }
 
